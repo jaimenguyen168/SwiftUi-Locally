@@ -28,6 +28,7 @@ struct MainTabView: View {
                     }
             }
             .toolbarBackground(.indigo, for: .tabBar)
+            .toolbarBackground(.visible, for: .tabBar)
             .toolbarColorScheme(.dark, for: .tabBar)
         }
     }
@@ -36,4 +37,5 @@ struct MainTabView: View {
 #Preview {
     MainTabView()
         .environment(LocationManager())
+        .environment(EventManager())
 }

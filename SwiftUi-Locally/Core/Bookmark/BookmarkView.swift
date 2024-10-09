@@ -8,11 +8,36 @@
 import SwiftUI
 
 struct BookmarkView: View {
+    
+    @Environment(EventManager.self) var eventManager
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationStack {
+            VStack {  
+                ScrollView {
+                    LazyVStack {
+                        ForEach(eventManager.bookmarkedEvents) { event in
+                            EventCardView(
+                                event: event,
+                                isBookmarked: event.isBookmarked,
+                                onBookmarkTapped: {
+                                    eventManager.toggleBookmark(for: event)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+            .toolbar {
+                
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Bookmarks")
+        }
     }
 }
 
 #Preview {
     BookmarkView()
+        .environment(EventManager())
 }

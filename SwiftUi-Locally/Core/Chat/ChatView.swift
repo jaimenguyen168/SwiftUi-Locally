@@ -45,6 +45,7 @@ struct ChatView: View {
                 } label: {
                     Text("Send")
                         .fontWeight(.semibold)
+                        .foregroundStyle(.indigo)
                 }
                 .padding(.horizontal)
             }

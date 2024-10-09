@@ -11,6 +11,7 @@ import SwiftUI
 struct SwiftUi_LocallyApp: App {
     
     @State private var locationManager = LocationManager()
+    @State private var eventManager = EventManager()
     
     var body: some Scene {
         WindowGroup {
@@ -21,5 +22,6 @@ struct SwiftUi_LocallyApp: App {
             }
         }
         .environment(locationManager)
+        .environment(eventManager)
     }
 }

@@ -12,21 +12,22 @@ import SwiftData
 struct LocalMapView: View {
     
     @Environment(LocationManager.self) var locationManager
+    @Environment(EventManager.self) var eventManager
+    
     @State private var cameraPosition: MapCameraPosition = .userLocation(fallback: .automatic)
-    @State private var eventList: [Event] = Event.events
     
     @State private var showFilterMenu = false
+    @State private var selectedCategory: Category = .none
     
     @State private var selectedEvent: Event?
-    @State private var isFullSheet = false
-    @State private var selectedDetent: PresentationDetent = .fraction(0.35)
+    @State private var selectedDetent: PresentationDetent = .fraction(0.4)
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             Map(position: $cameraPosition) {
                 Marker("My Location", coordinate: locationManager.userLocation?.coordinate ?? .empy)
                 
-                ForEach(eventList) { event in
+                ForEach(eventManager.events) { event in
                     Annotation(event.name, coordinate: event.coordinate) {
                         
                         LocalMarker(
@@ -55,18 +56,44 @@ struct LocalMapView: View {
             .mapControls {
                 MapUserLocationButton()
             }
-            .sheet(item: $selectedEvent) { event in
-                eventSheet(for: event)
+            .sheet(item: $selectedEvent, onDismiss: {
+                selectedDetent = .fraction(0.4)
+            }) { event in
+                EventCardView(
+                    event: event,
+                    isBookmarked: event.isBookmarked,
+                    onBookmarkTapped: {
+                        eventManager.toggleBookmark(for: event)
+                    }
+                )
                     .presentationDetents(
-                        [.fraction(0.35), .fraction(0.7)],
+                        [.fraction(0.4), .fraction(0.8)],
                         selection: $selectedDetent
                     )
                     .onTapGesture {
                         withAnimation {
-                            isFullSheet.toggle()
-                            selectedDetent = (selectedDetent == .fraction(0.35)) ? .fraction(0.7) : .fraction(0.35)
+                            selectedDetent = (selectedDetent == .fraction(0.4)) ? .fraction(0.8) : .fraction(0.4)
                         }
                     }
+                
+                if selectedDetent == .fraction(0.8) {
+                    ChatView()
+                        .transition(.move(edge: .bottom))
+                } else {
+                    Button {
+                        selectedEvent = nil
+                    } label: {
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 32))
+                            .foregroundStyle(.white)
+                            .padding(.vertical, 16)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .background(.indigo)
+                            .clipShape(Capsule())
+                            .padding(.horizontal)
+                    }
+                    .transition(.identity)
+                }
             }
             
             filterMenu
@@ -92,92 +119,10 @@ struct LocalMapView: View {
 #Preview {
     LocalMapView()
         .environment(LocationManager())
+        .environment(EventManager())
 }
 
 private extension LocalMapView {
-    func eventSheet(for event: Event) -> some View {
-        VStack {
-            HStack(alignment: .center, spacing: 16) {
-                VStack {
-                    VStack {
-                        if let image = event.image {
-                            Image(image)
-                                .resizable()
-                        } else {
-                            Image(systemName: "photo")
-                                .resizable()
-                        }
-                    }
-                    .frame(width: 100, height: 100)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.gray, lineWidth: 2))
-                    
-                    Text(event.name)
-                        .font(.body)
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(event.title)
-                        .font(.headline)
-                    
-                    Divider()
-
-                    if let desc = event.descriptionText {
-                        Text(desc)
-                            .font(.subheadline)
-                            .lineLimit(2)
-                    }
-
-                    HStack {
-                        Image(systemName: "mappin.and.ellipse.circle")
-                        
-                        Text(event.address)
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
-
-                    HStack {
-                        Image(systemName: "person")
-                        
-                        Text("**\(event.attending ?? 0)** people attending")
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                    }
-                }
-
-                Spacer()
-            }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 4) // Adding shadow for elevation effect
-            )
-            .padding()
-            
-            if isFullSheet {
-                ChatView()
-                    .transition(.move(edge: .bottom))
-            } else {
-                Button {
-                    selectedEvent = nil
-                } label: {
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 32))
-                        .foregroundStyle(.white)
-                        .padding(.vertical, 16)
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .background(.indigo)
-                .clipShape(Capsule())
-                .padding(.horizontal)
-                .transition(.identity)
-//                .animation(nil, value: isFullSheet)
-            }
-        }
-    }
-    
     var filterMenu: some View {
         HStack {
             Spacer()
@@ -186,29 +131,30 @@ private extension LocalMapView {
                 if showFilterMenu {
                     VStack(spacing: 0) {
                         ForEach(Category.allCases) { category in
-                            Button {
-                                eventList = Event.events.filter({
-                                    $0.category == category
-                                })
-                                withAnimation {
-                                    showFilterMenu = false
+                            if category != selectedCategory {
+                                Button {
+                                    eventManager.filterEvents(by: category)
+                                    withAnimation {
+                                        showFilterMenu = false
+                                    }
+                                    selectedCategory = category
+                                } label: {
+                                    Image(systemName: category.icon)
+                                        .font(.subheadline)
                                 }
-                            } label: {
-                                Image(systemName: category.icon)
+                                .padding(.top, 12)
+                                .transition(.move(edge: .bottom))
+                                .animation(.smooth, value: showFilterMenu)
                             }
-                            .padding(.top, 12)
-                            .transition(.move(edge: .bottom))
-                            .animation(.smooth, value: showFilterMenu)
                         }
                     }
                 }
                 
                 Button(action: {
-                    withAnimation {
-                        showFilterMenu.toggle()
-                    }
+                    showFilterMenu.toggle()
                 }) {
-                    Image(systemName: "line.horizontal.3.decrease.circle")
+                    Image(systemName: selectedCategory.icon)
+                        .font(.headline)
                 }
                 .padding(12)
                 .clipShape(Circle())

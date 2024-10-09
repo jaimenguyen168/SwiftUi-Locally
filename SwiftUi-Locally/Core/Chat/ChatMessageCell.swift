@@ -19,7 +19,7 @@ struct ChatMessageCell: View {
                 Text("This is a test message from the current user but it's a bit longer.")
                     .font(.subheadline)
                     .padding(12)
-                    .background(Color(.systemBlue))
+                    .background(.indigo)
                     .foregroundStyle(.white)
                     .clipShape(ChatBubble(isFromCurrentUser: isFromCurrentUser))
                     .frame(maxWidth: currentUserChatBubbleWidth, alignment: .trailing)
