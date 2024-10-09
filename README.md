@@ -1,9 +1,6 @@
 # Project Overview
 Locally is a mobile app that connects users with local experiences, helping them discover events, restaurants, landmarks, and activities tailored to their interests. Designed for travelers, new residents, and locals alike, the app provides personalized recommendations and real-time updates, allowing users to explore their surroundings with ease. Users can interact with the community, ask questions, and share experiences, while businesses can promote their offerings to a wider audience, fostering a seamless connection between locals, visitors, and vendors.
 
-# Concept Design
-The conceptual design of Locally is centered around **SwiftUI** for iOS development, with the potential to expand to **Kotlin Jetpack Compose** for Android, offering a modern, native UI experience on both platforms. This approach ensures optimal performance and native look-and-feel. However, **React Native** is considered as an alternative, offering cross-platform development benefits.
-
 # Background
 Locally targets individuals looking for authentic local experiences through real-time user interaction and content sharing. It stands out from competitors like Eventbrite, Meetup, and Yelp by focusing on community-driven engagement. The app's real-time chat feature allows users to ask questions and get immediate feedback from others. Local businesses can also manage their profiles and engage directly with users, differentiating Locally from more passive, listing-based platforms.
 
